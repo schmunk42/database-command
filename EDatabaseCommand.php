@@ -20,7 +20,7 @@
  * @since 3.0.1
  */
 
-class P3DatabaseCommand extends CConsoleCommand {
+class EDatabaseCommand extends CConsoleCommand {
     
     /**
 	 * @var string database connection component
