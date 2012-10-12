@@ -4,9 +4,13 @@ database-command
 Yii command to create database migrations from existing schema. 
 Migration classes are created in application `runtime` folder.
 
-    Usage: yiic database dump
+Usage
+-----
 
-    Available actions: dump [--prefix=<table_prefix>] [--createSchema=<0|1>] [--insertData=<0|1>] [--dbConnection=<db>]
+Run the command...
+
+    ./yiic database dump [--prefix=<table_prefix>] [--createSchema=<0|1>] [--insertData=<0|1>] [--dbConnection=<db>]
+
 
 Param            | Default | Info
 -----------------|---------|-----------------------------------
@@ -37,6 +41,6 @@ Features
 Resources
 ----------
 
-* [github](https://github.com/schmunk42/database-command)
-* [Yii Extensions]()
+* Fork on [github](https://github.com/schmunk42/database-command)
+* View at [Yii Extensions]()
 * [Phundament 3](http://phundament.com) Package
