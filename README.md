@@ -4,6 +4,11 @@ database-command
 Yii command to create database migrations from existing schema. 
 Migration classes are created in application `runtime` folder.
 
+Download
+--------
+
+[Get it from github](https://github.com/schmunk42/database-command/tags) and place it into your application.
+
 Usage
 -----
 
