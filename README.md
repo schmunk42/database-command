@@ -1,7 +1,8 @@
 database-command
 ================
 
-Yii command to create database migrations from existing schema.
+Yii command to create database migrations from existing schema. 
+Migration classes are created in application `runtime` folder.
 
     Usage: yiic database dump
 
@@ -13,3 +14,27 @@ Param            | Default | Info
 --createSchema   | 1       | wheter to create tables 
 --insertData     | 1       | wheter to create insert statements
 --dbConnection   | db      | application component to use
+
+
+Configuration
+-------------
+
+`config/console.php`
+
+    'commandMap' => array(
+        'database' => array(
+            'class' => 'vendor.schmunk42.database-command.EDatabaseCommand',
+        ),
+    )
+
+Features
+--------
+
+* primary key generation
+* foreign key generation (skipped for SQLite)
+* complete data and schmema dump
+
+ToDo
+----
+
+* complete indices handling 
