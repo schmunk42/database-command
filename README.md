@@ -34,7 +34,9 @@ Features
 * foreign key generation (skipped for SQLite)
 * complete data and schmema dump
 
-ToDo
-----
+Resources
+----------
 
-* complete indices handling 
+* [github](https://github.com/schmunk42/database-command)
+* [Yii Extensions]()
+* [Phundament 3](http://phundament.com) Package
