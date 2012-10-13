@@ -21,15 +21,24 @@ Usage
 
 Run the command...
 
-    ./yiic database dump [--prefix=<table_prefix>] [--createSchema=<0|1>] [--insertData=<0|1>] [--dbConnection=<db>]
+    ./yiic database dump [<name>] [--prefix=<table_prefix>] [--createSchema=<0|1>] [--insertData=<0|1>] [--dbConnection=<db>]
 
 
 Param            | Default | Info
 -----------------|---------|-----------------------------------
+name             | dump    | migration class name 
 --prefix         |         | dump only tables with given prefix
 --createSchema   | 1       | wheter to create tables 
 --insertData     | 1       | wheter to create insert statements
 --dbConnection   | db      | application component to use
+
+#### Example
+
+To create a migration from an existing application scheme, define an alternative database component in your 
+application, e.g. `db-production`. The following command dumps all tables starting with `p3_media` and omits
+the schema create statements.
+
+    ./yiic database dump p3media-no-schema-production --prefix=p3_media --createSchema=0 --dbConnection=db-production
 
 
 Requirements
