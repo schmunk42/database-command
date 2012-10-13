@@ -17,8 +17,6 @@
  * Based upon http://www.yiiframework.com/doc/guide/1.1/en/database.migration#c2550 from Leric
  *
  * @author Tobias Munk <schmunk@usrbin.de>
- * @package p3extensions.commands
- * @since 3.0.1
  */
 class EDatabaseCommand extends CConsoleCommand
 {
@@ -48,7 +46,7 @@ class EDatabaseCommand extends CConsoleCommand
         echo <<<EOS
 Usage: yiic {$this->name} <action>
 
-Available actions: dump [--prefix=<table_prefix>] [--createSchema=<0|1>] [--insertData=<0|1>] [--dbConnection=<db>]
+Available actions: dump [<name>] [--prefix=<table_prefix>] [--createSchema=<0|1>] [--insertData=<0|1>] [--dbConnection=<db>]
 
 
 EOS;
@@ -86,7 +84,8 @@ EOS;
             }
         }
 
-        $migrationClassName = 'm' . date('ymd_His') . "_dump";
+        $migrationName = (isset($args[0]))?$args[0]:'dump';
+        $migrationClassName = 'm' . date('ymd_His') . "_". $migrationName;
         $filename = Yii::app()->basePath . DIRECTORY_SEPARATOR . 'runtime' . DIRECTORY_SEPARATOR . $migrationClassName . ".php";
         $migrationClassCode = $this->renderFile(
             dirname(__FILE__) . '/views/migration.php', array('migrationClassName' => $migrationClassName, 'functionUp' => $code), true);
@@ -150,7 +149,7 @@ EOS;
         foreach ($data AS $row) {
             $code .= $this->indent(2) . '$this->insert("' . $table->name . '", array(' . "\n";
             foreach ($row AS $column => $value) {
-                $code .= $this->indent(3) . '"' . $column . '"=>' . (($value === null) ? 'null' : '"' . addslashes($value) . '"') . ',' . "\n";
+                $code .= $this->indent(3) . '"' . $column . '"=>' . (($value === null) ? 'null' : '"' . addcslashes($value,'"') . '"') . ',' . "\n";
             }
             $code .= $this->indent(2) . ') );' . "\n\n";
         }
