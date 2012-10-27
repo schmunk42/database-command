@@ -97,7 +97,7 @@ EOS;
     private function generateSchema($table, $schema)
     {
         $options = "ENGINE=InnoDB DEFAULT CHARSET=utf8";
-        $code = "\n\n\n" . $this->indent(2) . "// Schema for table '" . $table->name . "'\n\n";
+        $code = "\n\n\n" . $this->indent(2) . "// Schema for table '" . $table->name . "'\n";
         $code .= $this->indent(2) . '$this->createTable("' . $table->name . '", ';
         $code .= "\n";
         $code .= $this->indent(3) . 'array(' . "\n";
@@ -107,9 +107,7 @@ EOS;
 
         // special case for non-auto-increment PKs
         $code .= $this->generatePrimaryKeys($table->columns);
-        $code .= "\n";
-        $code .= $this->indent(3) . '), ';
-        $code .= "\n";
+        $code .= $this->indent(3) . '), '."\n";
         $code .= $this->indent(2) . '$options);';
         return $code;
     }
@@ -118,7 +116,7 @@ EOS;
     {
         foreach ($columns as $col) {
             if ($col->isPrimaryKey && !$col->autoIncrement) {
-                return $this->indent(3) . '"PRIMARY KEY (' . $col->name . ')"';
+                return $this->indent(3) . '"PRIMARY KEY (' . $col->name . ')"'."\n";
             }
         }
     }
@@ -127,10 +125,9 @@ EOS;
     {
         if (count($table->foreignKeys) == 0)
             return "";
-        $code = "\n\n\n" . $this->indent(2) . "// Foreign Keys for table '" . $table->name . "'\n\n";
-        $code .= $this->indent(2) . "if ((Yii::app()->db->schema instanceof CSqliteSchema) == false):\n";
+        $code = "\n\n\n" . $this->indent(2) . "// Foreign Keys for table '" . $table->name . "'\n";
+        $code .= $this->indent(2) . "if ((Yii::app()->db->schema instanceof CSqliteSchema) == false):";
         foreach ($table->foreignKeys as $name => $foreignKey) {
-            #echo "FK" . $name . var_dump($foreignKey);
             $code .= "\n" . $this->indent(3) . "\$this->addForeignKey('fk_{$foreignKey[0]}_{$name}', '{$table->name}', '{$name}', '{$foreignKey[0]}', '{$foreignKey[1]}', null, null); // update 'null' for ON DELTE and ON UPDATE\n";
         }
         $code .= "\n" . $this->indent(2) . "endif;\n";
@@ -145,7 +142,7 @@ EOS;
 
         if (count($data) == 0)
             return "";
-        $code = "\n\n\n" . $this->indent(2) . "// Data for table '" . $table->name . "'\n\n";
+        $code = "\n\n\n" . $this->indent(2) . "// Data for table '" . $table->name . "'\n";
         foreach ($data AS $row) {
             $code .= $this->indent(2) . '$this->insert("' . $table->name . '", array(' . "\n";
             foreach ($row AS $column => $value) {
