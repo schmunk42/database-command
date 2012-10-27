@@ -125,6 +125,8 @@ EOS;
 
     private function generateForeignKeys($table, $schema)
     {
+        if (count($table->foreignKeys) == 0)
+            return "";
         $code = "\n\n\n" . $this->indent(2) . "// Foreign Keys for table '" . $table->name . "'\n\n";
         $code .= $this->indent(2) . "if ((Yii::app()->db->schema instanceof CSqliteSchema) == false):\n";
         foreach ($table->foreignKeys as $name => $foreignKey) {
@@ -137,11 +139,13 @@ EOS;
 
     private function generateInserts($table, $schema)
     {
-        $code = "\n\n\n" . $this->indent(2) . "// Data for table '" . $table->name . "'\n\n";
         $data = Yii::app()->{$this->dbConnection}->createCommand()
             ->from($table->name)
             ->query();
 
+        if (count($data) == 0)
+            return "";
+        $code = "\n\n\n" . $this->indent(2) . "// Data for table '" . $table->name . "'\n\n";
         foreach ($data AS $row) {
             $code .= $this->indent(2) . '$this->insert("' . $table->name . '", array(' . "\n";
             foreach ($row AS $column => $value) {
