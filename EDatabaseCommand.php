@@ -69,17 +69,11 @@ EOS;
                 continue;
 
             if ($this->createSchema == true) {
-                $code .= "\n\n\n" . $this->indent(2) . "// Schema for table '" . $table->name . "'\n\n";
                 $code .= $this->generateSchema($table, $schema);
-
-                $code .= "\n\n\n" . $this->indent(2) . "// Foreign Keys for table '" . $table->name . "'\n\n";
-                $code .= $this->indent(2) . "if ((Yii::app()->db->schema instanceof CSqliteSchema) == false):\n";
                 $code .= $this->generateForeignKeys($table, $schema);
-                $code .= "\n" . $this->indent(2) . "endif;\n";
             }
 
             if ($this->insertData == true) {
-                $code .= "\n\n\n" . $this->indent(2) . "// Data for table '" . $table->name . "'\n\n";
                 $code .= $this->generateInserts($table, $schema);
             }
         }
@@ -103,7 +97,7 @@ EOS;
     private function generateSchema($table, $schema)
     {
         $options = "ENGINE=InnoDB DEFAULT CHARSET=utf8";
-        $code = '';
+        $code = "\n\n\n" . $this->indent(2) . "// Schema for table '" . $table->name . "'\n\n";
         $code .= $this->indent(2) . '$this->createTable("' . $table->name . '", ';
         $code .= "\n";
         $code .= $this->indent(3) . 'array(' . "\n";
@@ -131,17 +125,19 @@ EOS;
 
     private function generateForeignKeys($table, $schema)
     {
-        $code = "";
+        $code = "\n\n\n" . $this->indent(2) . "// Foreign Keys for table '" . $table->name . "'\n\n";
+        $code .= $this->indent(2) . "if ((Yii::app()->db->schema instanceof CSqliteSchema) == false):\n";
         foreach ($table->foreignKeys as $name => $foreignKey) {
             #echo "FK" . $name . var_dump($foreignKey);
             $code .= "\n" . $this->indent(3) . "\$this->addForeignKey('fk_{$foreignKey[0]}_{$name}', '{$table->name}', '{$name}', '{$foreignKey[0]}', '{$foreignKey[1]}', null, null); // update 'null' for ON DELTE and ON UPDATE\n";
         }
+        $code .= "\n" . $this->indent(2) . "endif;\n";
         return $code;
     }
 
     private function generateInserts($table, $schema)
     {
-        $code = '';
+        $code = "\n\n\n" . $this->indent(2) . "// Data for table '" . $table->name . "'\n\n";
         $data = Yii::app()->{$this->dbConnection}->createCommand()
             ->from($table->name)
             ->query();
