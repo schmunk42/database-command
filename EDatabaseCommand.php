@@ -146,7 +146,7 @@ EOS;
         foreach ($data AS $row) {
             $code .= $this->indent(2) . '$this->insert("' . $table->name . '", array(' . "\n";
             foreach ($row AS $column => $value) {
-                $code .= $this->indent(3) . '"' . $column . '"=>' . (($value === null) ? 'null' : '"' . addcslashes($value,'"\\') . '"') . ',' . "\n";
+                $code .= $this->indent(3) . '"' . $column . '"=>' . (($value === null) ? 'null' : '"' . addcslashes($value,'"\\$') . '"') . ',' . "\n";
             }
             $code .= $this->indent(2) . ') );' . "\n\n";
         }
