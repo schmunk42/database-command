@@ -64,6 +64,14 @@ EOS;
         $code .= $this->indent(2) . "else\n";
         $code .= $this->indent(2) . "	\$options = '';\n";
 
+        $migrationName = (isset($args[0]))?$args[0]:'dump';
+        if (preg_match('/^[a-z_]\w+$/i', $migrationName) === 0) {
+            exit("Invalid class name '$migrationName'\n");
+        }
+
+        $migrationClassName = 'm' . date('ymd_His') . "_". $migrationName;
+        $filename = Yii::app()->basePath . DIRECTORY_SEPARATOR . 'runtime' . DIRECTORY_SEPARATOR . $migrationClassName . ".php";
+
         foreach ($tables as $table) {
             if (substr($table->name, 0, strlen($this->prefix)) != $this->prefix)
                 continue;
@@ -78,9 +86,6 @@ EOS;
             }
         }
 
-        $migrationName = (isset($args[0]))?$args[0]:'dump';
-        $migrationClassName = 'm' . date('ymd_His') . "_". $migrationName;
-        $filename = Yii::app()->basePath . DIRECTORY_SEPARATOR . 'runtime' . DIRECTORY_SEPARATOR . $migrationClassName . ".php";
         $migrationClassCode = $this->renderFile(
             dirname(__FILE__) . '/views/migration.php', array('migrationClassName' => $migrationClassName, 'functionUp' => $code), true);
 
