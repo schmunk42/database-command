@@ -41,6 +41,11 @@ class EDatabaseCommand extends CConsoleCommand
      */
     public $prefix = "";
 
+    /**
+     * @var bool whether to display the Foreign Keys warning
+     */
+    protected $_displayFkWarning = false;
+
     public function getHelp()
     {
         echo <<<EOS
@@ -92,6 +97,19 @@ EOS;
         file_put_contents($filename, $migrationClassCode);
 
         echo "Your data has been dumped to '$filename'\n";
+
+        if ($this->_displayFkWarning) {
+            echo <<<EOS
+
+WARNING
+Your database include Foreign Keys definitions. Sadly Yii methods don't allow to know the details of the relation, precisely 
+ON DELETE and ON UPDATE conditions.
+Please open the generated file, look for lines with "FIX RELATIONS" comment and adjust them according to your database.
+For details about the addForeignKey definition please see here:
+    http://www.yiiframework.com/doc/api/1.1/CDbMigration#addForeignKey-detail
+
+EOS;
+        }
     }
 
     private function indent($level = 0)
@@ -133,9 +151,10 @@ EOS;
         $code = "\n\n\n" . $this->indent(2) . "// Foreign Keys for table '" . $table->name . "'\n";
         $code .= $this->indent(2) . "if ((Yii::app()->db->schema instanceof CSqliteSchema) == false):";
         foreach ($table->foreignKeys as $name => $foreignKey) {
-            $code .= "\n" . $this->indent(3) . "\$this->addForeignKey('fk_{$foreignKey[0]}_{$name}', '{$table->name}', '{$name}', '{$foreignKey[0]}', '{$foreignKey[1]}', null, null); // update 'null' for ON DELTE and ON UPDATE\n";
+            $code .= "\n" . $this->indent(3) . "\$this->addForeignKey('fk_{$foreignKey[0]}_{$name}', '{$table->name}', '{$name}', '{$foreignKey[0]}', '{$foreignKey[1]}', null, null); // FIX RELATIONS \n";
         }
         $code .= "\n" . $this->indent(2) . "endif;\n";
+        $this->_displayFkWarning = TRUE;
         return $code;
     }
 
