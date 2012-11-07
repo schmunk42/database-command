@@ -62,5 +62,5 @@ Resources
 
 * Fork on [github](https://github.com/schmunk42/database-command)
 * View at [Yii Extensions](http://www.yiiframework.com/extension/database-command/)
-* [CHNAGELOG](https://github.com/schmunk42/database-command/blob/master/CHANGELOG.md)
+* [CHANGELOG](https://github.com/schmunk42/database-command/blob/master/CHANGELOG.md)
 * [Phundament 3](http://phundament.com) Package
