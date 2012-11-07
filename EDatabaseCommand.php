@@ -51,7 +51,7 @@ class EDatabaseCommand extends CConsoleCommand
         echo <<<EOS
 Usage: yiic {$this->name} <action>
 
-Available actions: dump [<name>] [--prefix=<table_prefix>] [--createSchema=<0|1>] [--insertData=<0|1>] [--dbConnection=<db>]
+Available actions: dump [<name>] [--prefix=<table_prefix,...>] [--createSchema=<0|1>] [--insertData=<0|1>] [--dbConnection=<db>]
 
 
 EOS;
@@ -76,9 +76,18 @@ EOS;
 
         $migrationClassName = 'm' . date('ymd_His') . "_". $migrationName;
         $filename = Yii::app()->basePath . DIRECTORY_SEPARATOR . 'runtime' . DIRECTORY_SEPARATOR . $migrationClassName . ".php";
+        $prefixes = explode(",", $this->prefix);
 
         foreach ($tables as $table) {
-            if (substr($table->name, 0, strlen($this->prefix)) != $this->prefix)
+
+            $found = false;
+            foreach($prefixes AS $prefix) {
+                if (substr($table->name, 0, strlen($prefix)) == $prefix) {
+                    $found = true;
+                    break;
+                }
+            }
+            if (!$found)
                 continue;
 
             if ($this->createSchema == true) {

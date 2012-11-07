@@ -27,7 +27,7 @@ Run the command...
 Param            | Default | Info
 -----------------|---------|-----------------------------------
 name             | dump    | migration class name 
---prefix         |         | dump only tables with given prefix
+--prefix         |         | dump only tables with given prefix<br/>(specify multiple prefixes separated by commas)
 --createSchema   | 1       | wheter to create tables 
 --insertData     | 1       | wheter to create insert statements
 --dbConnection   | db      | application component to use

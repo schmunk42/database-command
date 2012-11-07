@@ -1,3 +1,8 @@
+0.8.4
+-----
+
+ * [ENH] Updated prefix option (schmunk42)
+
 0.8.3
 -----
 
