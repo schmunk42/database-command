@@ -37,6 +37,16 @@ class EDatabaseCommand extends CConsoleCommand
     public $insertData = true;
 
     /**
+     * @var string wheter to add truncate table data statements
+     */
+    public $truncateTable = false;
+
+    /**
+     * @var string wheter to disable foreign key checks
+     */
+    public $foreignKeyChecks = true;
+
+    /**
      * @var string dump only table with the given prefix
      */
     public $prefix = "";
@@ -64,31 +74,40 @@ EOS;
         $tables = Yii::app()->{$this->dbConnection}->schema->tables;
 
         $code = '';
-        $code .= $this->indent(2) . "if (Yii::app()->db->schema instanceof CMysqlSchema)\n";
+        $code .= $this->indent(2) . "if (Yii::app()->db->schema instanceof CMysqlSchema) {\n";
+        if ($this->foreignKeyChecks == false) {
+            $code .= $this->indent(2) . "	\$this->execute('SET FOREIGN_KEY_CHECKS = 0;');\n";
+        }
         $code .= $this->indent(2) . "	\$options = 'ENGINE=InnoDB DEFAULT CHARSET=utf8';\n";
-        $code .= $this->indent(2) . "else\n";
+        $code .= $this->indent(2) . "} else {\n";
         $code .= $this->indent(2) . "	\$options = '';\n";
+        $code .= $this->indent(2) . "}\n";
 
-        $migrationName = (isset($args[0]))?$args[0]:'dump';
+        $migrationName = (isset($args[0])) ? $args[0] : 'dump';
         if (preg_match('/^[a-z_]\w+$/i', $migrationName) === 0) {
             exit("Invalid class name '$migrationName'\n");
         }
 
-        $migrationClassName = 'm' . date('ymd_His') . "_". $migrationName;
+        $migrationClassName = 'm' . date('ymd_His') . "_" . $migrationName;
         $filename = Yii::app()->basePath . DIRECTORY_SEPARATOR . 'runtime' . DIRECTORY_SEPARATOR . $migrationClassName . ".php";
         $prefixes = explode(",", $this->prefix);
 
         foreach ($tables as $table) {
 
             $found = false;
-            foreach($prefixes AS $prefix) {
+            foreach ($prefixes AS $prefix) {
                 if (substr($table->name, 0, strlen($prefix)) == $prefix) {
                     $found = true;
                     break;
                 }
             }
-            if (!$found)
+            if (!$found) {
                 continue;
+            }
+
+            if ($this->truncateTable == true) {
+                $code .= $this->generateTruncate($table, $schema);
+            }
 
             if ($this->createSchema == true) {
                 $code .= $this->generateSchema($table, $schema);
@@ -100,8 +119,14 @@ EOS;
             }
         }
 
+        if ($this->foreignKeyChecks == false) {
+            $code .= $this->indent(2) . "if (Yii::app()->db->schema instanceof CMysqlSchema)\n";
+            $code .= $this->indent(2) . "	\$this->execute('SET FOREIGN_KEY_CHECKS = 1;');\n";
+        }
+
         $migrationClassCode = $this->renderFile(
-            dirname(__FILE__) . '/views/migration.php', array('migrationClassName' => $migrationClassName, 'functionUp' => $code), true);
+            dirname(__FILE__) . '/views/migration.php', array('migrationClassName' => $migrationClassName,
+                                                              'functionUp' => $code), true);
 
         file_put_contents($filename, $migrationClassCode);
 
@@ -139,7 +164,7 @@ EOS;
 
         // special case for non-auto-increment PKs
         $code .= $this->generatePrimaryKeys($table->columns);
-        $code .= $this->indent(3) . '), '."\n";
+        $code .= $this->indent(3) . '), ' . "\n";
         $code .= $this->indent(2) . '$options);';
         return $code;
     }
@@ -148,15 +173,16 @@ EOS;
     {
         foreach ($columns as $col) {
             if ($col->isPrimaryKey && !$col->autoIncrement) {
-                return $this->indent(3) . '"PRIMARY KEY (' . $col->name . ')"'."\n";
+                return $this->indent(3) . '"PRIMARY KEY (' . $col->name . ')"' . "\n";
             }
         }
     }
 
     private function generateForeignKeys($table, $schema)
     {
-        if (count($table->foreignKeys) == 0)
+        if (count($table->foreignKeys) == 0) {
             return "";
+        }
         $code = "\n\n\n" . $this->indent(2) . "// Foreign Keys for table '" . $table->name . "'\n";
         $code .= $this->indent(2) . "if ((Yii::app()->db->schema instanceof CSqliteSchema) == false):";
         foreach ($table->foreignKeys as $name => $foreignKey) {
@@ -173,16 +199,25 @@ EOS;
             ->from($table->name)
             ->query();
 
-        if (count($data) == 0)
+        if (count($data) == 0) {
             return "";
+        }
         $code = "\n\n\n" . $this->indent(2) . "// Data for table '" . $table->name . "'\n";
         foreach ($data AS $row) {
             $code .= $this->indent(2) . '$this->insert("' . $table->name . '", array(' . "\n";
             foreach ($row AS $column => $value) {
-                $code .= $this->indent(3) . '"' . $column . '"=>' . (($value === null) ? 'null' : '"' . addcslashes($value,'"\\$') . '"') . ',' . "\n";
+                $code .= $this->indent(3) . '"' . $column . '"=>' . (($value === null) ? 'null' :
+                    '"' . addcslashes($value, '"\\$') . '"') . ',' . "\n";
             }
             $code .= $this->indent(2) . ') );' . "\n\n";
         }
+        return $code;
+    }
+
+    private function generateTruncate($table)
+    {
+        $code = "";
+        $code .= $this->indent(2) . '$this->truncateTable("' . $table->name . '");' . "\n";
         return $code;
     }
 
