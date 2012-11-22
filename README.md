@@ -24,13 +24,15 @@ Run the command...
     ./yiic database dump [<name>] [--prefix=<table_prefix>] [--createSchema=<0|1>] [--insertData=<0|1>] [--dbConnection=<db>]
 
 
-Param            | Default | Info
------------------|---------|-----------------------------------
-name             | dump    | migration class name 
---prefix         |         | dump only tables with given prefix<br/>(specify multiple prefixes separated by commas)
---createSchema   | 1       | wheter to create tables 
---insertData     | 1       | wheter to create insert statements
---dbConnection   | db      | application component to use
+Param               | Default | Info
+--------------------|---------|-----------------------------------
+name                | dump    | migration class name
+--prefix            |         | dump only tables with given prefix<br/>(specify multiple prefixes separated by commas)
+--createSchema      | 1       | wheter to create tables
+--insertData        | 1       | wheter to create insert statements
+--truncateTable     | 0       | wheter to create insert statements
+--foreignKeyChecks  | 1       | set to `0` to disable foreign key checks
+--dbConnection      | db      | application component to use
 
 #### Example
 
