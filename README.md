@@ -21,7 +21,14 @@ Usage
 
 Run the command...
 
-    ./yiic database dump [<name>] [--prefix=<table_prefix>] [--createSchema=<0|1>] [--insertData=<0|1>] [--dbConnection=<db>]
+    ./yiic database
+    
+... to show the help page
+
+    dump [<name>] [--prefix=<table_prefix,...>] [--dbConnection=<db>]
+        [--createSchema=<1|0>] [--insertData=<1|0>] [--foreignKeyChecks=<1|0>] 
+        [--truncateTable=<0|1>]
+
 
 
 Param               | Default | Info
@@ -30,8 +37,8 @@ name                | dump    | migration class name
 --prefix            |         | dump only tables with given prefix<br/>(specify multiple prefixes separated by commas)
 --createSchema      | 1       | wheter to create tables
 --insertData        | 1       | wheter to create insert statements
---truncateTable     | 0       | wheter to create insert statements
 --foreignKeyChecks  | 1       | set to `0` to disable foreign key checks
+--truncateTable     | 0       | wheter to remove all records from the table first
 --dbConnection      | db      | application component to use
 
 #### Example
@@ -47,6 +54,11 @@ the schema create statements:
 This example shows data dumping, removes all data (truncate tables) and omits foreign key checks:
 
      ./yiic database dump p3_replace_data --prefix=Auth,Rights,usr,p3 --createSchema=0 --foreignKeyChecks=0 --truncateTable=1
+
+Separate schema and data:
+
+     ./yiic database dump my_schema --insertData=0
+     ./yiic database dump my_data --createSchema=0
 
 
 
