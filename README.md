@@ -44,9 +44,10 @@ the schema create statements:
 
     ./yiic database dump p3media-no-schema-production --prefix=p3_media --createSchema=0 --dbConnection=db-production
 
-This example shows data dumping, removes all data and omit foreign key checks:
+This example shows data dumping, removes all data (truncate tables) and omits foreign key checks:
 
-    ./yiic database dump my_data --prefix=data,user --createSchema=0 --truncateTable --foreignKeyChecks=0
+     ./yiic database dump p3_replace_data --prefix=Auth,Rights,usr,p3 --createSchema=0 --foreignKeyChecks=0 --truncateTable=1
+
 
 
 Requirements
