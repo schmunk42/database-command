@@ -61,7 +61,11 @@ class EDatabaseCommand extends CConsoleCommand
         echo <<<EOS
 Usage: yiic {$this->name} <action>
 
-Available actions: dump [<name>] [--prefix=<table_prefix,...>] [--createSchema=<0|1>] [--insertData=<0|1>] [--dbConnection=<db>]
+Available actions: 
+
+dump [<name>] [--prefix=<table_prefix,...>] [--dbConnection=<db>]
+    [--createSchema=<1|0>] [--insertData=<1|0>] [--foreignKeyChecks=<1|0>] 
+    [--truncateTable=<0|1>]
 
 
 EOS;
