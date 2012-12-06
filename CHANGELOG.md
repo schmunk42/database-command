@@ -1,7 +1,13 @@
 pending
 -------
 
+ * *no updates so far*
+
+0.8.5
+-----
+
  * [ENH] Added options `--truncateTable` and `--foreignKeyChecks` (schmunk42)
+ * [ENH] Updated help text
 
 0.8.4
 -----
