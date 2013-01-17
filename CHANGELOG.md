@@ -8,7 +8,7 @@
 -----
 
  * [ENH] Added options `--truncateTable` and `--foreignKeyChecks` (schmunk42)
- * [ENH] Updated help text
+ * [UPD] Updated help text (schmunk42)
 
 0.8.4
 -----
