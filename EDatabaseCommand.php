@@ -190,7 +190,7 @@ EOS;
         $code = "\n\n\n" . $this->indent(2) . "// Foreign Keys for table '" . $table->name . "'\n";
         $code .= $this->indent(2) . "if ((Yii::app()->db->schema instanceof CSqliteSchema) == false):";
         foreach ($table->foreignKeys as $name => $foreignKey) {
-            $code .= "\n" . $this->indent(3) . "\$this->addForeignKey('fk_{$foreignKey[0]}_{$name}', '{$table->name}', '{$name}', '{$foreignKey[0]}', '{$foreignKey[1]}', null, null); // FIX RELATIONS \n";
+            $code .= "\n" . $this->indent(3) . "\$this->addForeignKey('fk_{$table->name}_{$foreignKey[0]}_{$name}', '{$table->name}', '{$name}', '{$foreignKey[0]}', '{$foreignKey[1]}', null, null); // FIX RELATIONS \n";
         }
         $code .= "\n" . $this->indent(2) . "endif;\n";
         $this->_displayFkWarning = TRUE;
@@ -227,10 +227,6 @@ EOS;
 
     private function resolveColumnType($col)
     {
-        if ($col->isPrimaryKey && $col->autoIncrement) {
-            return "pk";
-        }
-
         $result = $col->dbType;
 
         if (!$col->allowNull) {
@@ -239,8 +235,16 @@ EOS;
         if ($col->defaultValue != null) {
             $result .= " DEFAULT '{$col->defaultValue}'";
         }
+        if ($col->isPrimaryKey) {
+            $result .= " PRIMARY KEY";
+        }
+        if ($col->autoIncrement) {
+            $result .= " AUTO_INCREMENT";
+        }
+
         return $result;
     }
+
 
 }
 
