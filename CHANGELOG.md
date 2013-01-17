@@ -1,7 +1,8 @@
-pending
--------
+0.8.6
+-----
 
- * *no updates so far*
+ * [ENH] updated generated code order (1.truncate), 2.schema, 3.foreign-keys, 4.inserts (le_top)
+ * [ENH] updated unsigned primary keys / unique name for keys (Alan Lobo)
 
 0.8.5
 -----
