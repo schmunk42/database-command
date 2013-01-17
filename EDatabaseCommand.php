@@ -96,6 +96,7 @@ EOS;
         $filename = Yii::app()->basePath . DIRECTORY_SEPARATOR . 'runtime' . DIRECTORY_SEPARATOR . $migrationClassName . ".php";
         $prefixes = explode(",", $this->prefix);
 
+        $codeTruncate = $codeSchema = $codeForeignKeys = $codeInserts = '';
         foreach ($tables as $table) {
 
             $found = false;
@@ -110,18 +111,20 @@ EOS;
             }
 
             if ($this->truncateTable == true) {
-                $code .= $this->generateTruncate($table, $schema);
+                $codeTruncate .= $this->generateTruncate($table, $schema);
             }
 
             if ($this->createSchema == true) {
-                $code .= $this->generateSchema($table, $schema);
-                $code .= $this->generateForeignKeys($table, $schema);
+                $codeSchema .= $this->generateSchema($table, $schema);
+                $codeForeignKeys .= $this->generateForeignKeys($table, $schema);
             }
 
             if ($this->insertData == true) {
-                $code .= $this->generateInserts($table, $schema);
+                $codeInserts .= $this->generateInserts($table, $schema);
             }
         }
+
+        $code .= $codeTruncate."\n".$codeSchema."\n".$codeForeignKeys."\n".$codeForeignKeys;
 
         if ($this->foreignKeyChecks == false) {
             $code .= $this->indent(2) . "if (Yii::app()->db->schema instanceof CMysqlSchema)\n";
@@ -188,11 +191,11 @@ EOS;
             return "";
         }
         $code = "\n\n\n" . $this->indent(2) . "// Foreign Keys for table '" . $table->name . "'\n";
-        $code .= $this->indent(2) . "if ((Yii::app()->db->schema instanceof CSqliteSchema) == false):";
+        $code .= $this->indent(2) . "if ((Yii::app()->db->schema instanceof CSqliteSchema) == false):\n";
         foreach ($table->foreignKeys as $name => $foreignKey) {
-            $code .= "\n" . $this->indent(3) . "\$this->addForeignKey('fk_{$table->name}_{$foreignKey[0]}_{$name}', '{$table->name}', '{$name}', '{$foreignKey[0]}', '{$foreignKey[1]}', null, null); // FIX RELATIONS \n";
+            $code .= $this->indent(3) . "\$this->addForeignKey('fk_{$table->name}_{$foreignKey[0]}_{$name}', '{$table->name}', '{$name}', '{$foreignKey[0]}', '{$foreignKey[1]}', null, null); // FIX RELATIONS \n";
         }
-        $code .= "\n" . $this->indent(2) . "endif;\n";
+        $code .= $this->indent(2) . "endif;\n";
         $this->_displayFkWarning = TRUE;
         return $code;
     }
