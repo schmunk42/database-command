@@ -124,7 +124,7 @@ EOS;
             }
         }
 
-        $code .= $codeTruncate."\n".$codeSchema."\n".$codeForeignKeys."\n".$codeForeignKeys;
+        $code .= $codeTruncate."\n".$codeSchema."\n".$codeForeignKeys."\n".$codeForeignKeys."\n".$codeInserts;
 
         if ($this->foreignKeyChecks == false) {
             $code .= $this->indent(2) . "if (Yii::app()->db->schema instanceof CMysqlSchema)\n";
