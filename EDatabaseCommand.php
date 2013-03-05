@@ -17,9 +17,16 @@
  * Based upon http://www.yiiframework.com/doc/guide/1.1/en/database.migration#c2550 from Leric
  *
  * @author Tobias Munk <schmunk@usrbin.de>
+ * @author Oleksii Strutsynskyi <cajoy1981@gmail.com>
  */
 class EDatabaseCommand extends CConsoleCommand
 {
+    /**
+     * @var string the directory that stores the migrations. This must be specified
+     * in terms of a path alias, and the corresponding directory must exist.
+     * Defaults to 'application.migrations' (meaning 'protected/migrations').
+     */
+    public $migrationPath='application.migrations';
 
     /**
      * @var string database connection component
@@ -56,15 +63,28 @@ class EDatabaseCommand extends CConsoleCommand
      */
     protected $_displayFkWarning = false;
 
+    public function beforeAction($action,$params)
+    {
+        $path=Yii::getPathOfAlias($this->migrationPath);
+        if($path===false || !is_dir($path))
+        {
+            echo 'Error: The migration directory does not exist: '.$this->migrationPath."\n";
+            exit(1);
+        }
+        $this->migrationPath=$path;
+
+        return parent::beforeAction($action,$params);
+    }
+
     public function getHelp()
     {
         echo <<<EOS
 Usage: yiic {$this->name} <action>
 
-Available actions: 
+Available actions:
 
 dump [<name>] [--prefix=<table_prefix,...>] [--dbConnection=<db>]
-    [--createSchema=<1|0>] [--insertData=<1|0>] [--foreignKeyChecks=<1|0>] 
+    [--createSchema=<1|0>] [--insertData=<1|0>] [--foreignKeyChecks=<1|0>]
     [--truncateTable=<0|1>]
 
 
@@ -80,11 +100,11 @@ EOS;
         $code = '';
         $code .= $this->indent(2) . "if (Yii::app()->db->schema instanceof CMysqlSchema) {\n";
         if ($this->foreignKeyChecks == false) {
-            $code .= $this->indent(2) . "	\$this->execute('SET FOREIGN_KEY_CHECKS = 0;');\n";
+            $code .= $this->indent(2) . "   \$this->execute('SET FOREIGN_KEY_CHECKS = 0;');\n";
         }
-        $code .= $this->indent(2) . "	\$options = 'ENGINE=InnoDB DEFAULT CHARSET=utf8';\n";
+        $code .= $this->indent(2) . "   \$options = 'ENGINE=InnoDB DEFAULT CHARSET=utf8';\n";
         $code .= $this->indent(2) . "} else {\n";
-        $code .= $this->indent(2) . "	\$options = '';\n";
+        $code .= $this->indent(2) . "   \$options = '';\n";
         $code .= $this->indent(2) . "}\n";
 
         $migrationName = (isset($args[0])) ? $args[0] : 'dump';
@@ -93,7 +113,7 @@ EOS;
         }
 
         $migrationClassName = 'm' . date('ymd_His') . "_" . $migrationName;
-        $filename = Yii::app()->basePath . DIRECTORY_SEPARATOR . 'runtime' . DIRECTORY_SEPARATOR . $migrationClassName . ".php";
+        $filename = $this->migrationPath . DIRECTORY_SEPARATOR . $migrationClassName . ".php";
         $prefixes = explode(",", $this->prefix);
 
         $codeTruncate = $codeSchema = $codeForeignKeys = $codeInserts = '';
@@ -128,7 +148,7 @@ EOS;
 
         if ($this->foreignKeyChecks == false) {
             $code .= $this->indent(2) . "if (Yii::app()->db->schema instanceof CMysqlSchema)\n";
-            $code .= $this->indent(2) . "	\$this->execute('SET FOREIGN_KEY_CHECKS = 1;');\n";
+            $code .= $this->indent(2) . "   \$this->execute('SET FOREIGN_KEY_CHECKS = 1;');\n";
         }
 
         $migrationClassCode = $this->renderFile(
@@ -143,7 +163,7 @@ EOS;
             echo <<<EOS
 
 WARNING
-Your database include Foreign Keys definitions. Sadly Yii methods don't allow to know the details of the relation, precisely 
+Your database include Foreign Keys definitions. Sadly Yii methods don't allow to know the details of the relation, precisely
 ON DELETE and ON UPDATE conditions.
 Please open the generated file, look for lines with "FIX RELATIONS" comment and adjust them according to your database.
 For details about the addForeignKey definition please see here:
