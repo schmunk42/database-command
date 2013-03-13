@@ -1,3 +1,9 @@
+0.8.7
+-----
+
+ * [ENH] updated extension to support migrationsPath configuration (cajoy1981)
+ * [FIX] fixed missing insert code (schmunk42)
+
 0.8.6
 -----
 
