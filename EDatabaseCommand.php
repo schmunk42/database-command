@@ -226,9 +226,6 @@ EOS;
             ->from($table->name)
             ->query();
 
-        if (count($data) == 0) {
-            return "";
-        }
         $code = "\n\n\n" . $this->indent(2) . "// Data for table '" . $table->name . "'\n";
         foreach ($data AS $row) {
             $code .= $this->indent(2) . '$this->insert("' . $table->name . '", array(' . "\n";

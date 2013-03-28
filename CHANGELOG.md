@@ -1,3 +1,8 @@
+0.8.8
+-----
+
+ * [FIX] fixed insert creation, removed obsolete check (schmunk42)
+
 0.8.7
 -----
 
