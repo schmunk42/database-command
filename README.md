@@ -48,7 +48,9 @@ application, e.g. `db-production`.
 
 This example shows data dumping, removes all data (truncate tables) and omits foreign key checks:
 
-     ./yiic database dump p3_replace_data --prefix=Auth,Rights,usr,p3 --createSchema=0 --foreignKeyChecks=0 --truncateTable=1
+     ./yiic database dump p3_replace_data \
+       --prefix=Auth,Rights,usr,p3 --createSchema=0 \
+       --foreignKeyChecks=0 --truncateTable=1
 
 Separate schema and data:
 
