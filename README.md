@@ -46,11 +46,6 @@ name                | dump    | migration class name
 To create a migration from an existing application scheme, define an alternative database component in your 
 application, e.g. `db-production`. 
 
-The following command dumps all tables starting with `p3_media` and omits
-the schema create statements:
-
-    ./yiic database dump p3media-no-schema-production --prefix=p3_media --createSchema=0 --dbConnection=dbProduction
-
 This example shows data dumping, removes all data (truncate tables) and omits foreign key checks:
 
      ./yiic database dump p3_replace_data --prefix=Auth,Rights,usr,p3 --createSchema=0 --foreignKeyChecks=0 --truncateTable=1
@@ -62,9 +57,15 @@ Separate schema and data:
 
 Replace your whole data with data from `dbProduction`:
 
-     ./yiic database dump replace-data \
+     ./yiic database dump replace_data \
        --truncateTable=1 --foreignKeyChecks=0 \
        --createSchema=0 --dbConnection=dbProduction
+
+The following command dumps all tables starting with `p3_media` and omits
+the schema create statements:
+
+    ./yiic database dump p3media_no_schema_production \
+    --prefix=p3_media --createSchema=0 --dbConnection=dbProduction
 
 
 Requirements
