@@ -49,7 +49,7 @@ application, e.g. `db-production`.
 The following command dumps all tables starting with `p3_media` and omits
 the schema create statements:
 
-    ./yiic database dump p3media-no-schema-production --prefix=p3_media --createSchema=0 --dbConnection=db-production
+    ./yiic database dump p3media-no-schema-production --prefix=p3_media --createSchema=0 --dbConnection=dbProduction
 
 This example shows data dumping, removes all data (truncate tables) and omits foreign key checks:
 
@@ -60,6 +60,11 @@ Separate schema and data:
      ./yiic database dump my_schema --insertData=0
      ./yiic database dump my_data --createSchema=0
 
+Replace your whole data with data from `dbProduction`:
+
+     ./yiic database dump replace-data \
+       --truncateTable=1 --foreignKeyChecks=0 \
+       --createSchema=0 --dbConnection=dbProduction
 
 
 Requirements
