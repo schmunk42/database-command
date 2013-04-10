@@ -1,3 +1,9 @@
+0.8.9
+-----
+
+ * [UPD] chnaged default dump directory to `application.runtime` (schmunk42)
+ * [ENH] ignore migration table by default (schmunk42)
+
 0.8.8
 -----
 

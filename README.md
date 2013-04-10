@@ -27,7 +27,7 @@ Run the command...
 
     dump [<name>] [--prefix=<table_prefix,...>] [--dbConnection=<db>]
         [--createSchema=<1|0>] [--insertData=<1|0>] [--foreignKeyChecks=<1|0>] 
-        [--truncateTable=<0|1>]
+        [--truncateTable=<0|1>] [--migrationPath=<alias>] [--ignoreMigrationTable=<1|0>]
 
 
 
@@ -40,6 +40,9 @@ name                | dump    | migration class name
 --foreignKeyChecks  | 1       | set to `0` to disable foreign key checks
 --truncateTable     | 0       | wheter to remove all records from the table first
 --dbConnection      | db      | application component to use
+--migrationPath     | application.runtime     | default dump folder
+--ignoreMigrationTable | 1    | wheter to ignore to migration table
+
 
 #### Example
 
