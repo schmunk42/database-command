@@ -59,6 +59,11 @@ class EDatabaseCommand extends CConsoleCommand
     public $prefix = "";
 
     /**
+     * @var string wheter to ignore the migration table
+     */
+    public $ignoreMigrationTable = true;
+
+    /**
      * @var bool whether to display the Foreign Keys warning
      */
     protected $_displayFkWarning = false;
@@ -120,6 +125,11 @@ EOS;
         foreach ($tables as $table) {
 
             $found = false;
+
+            if ($this->ignoreMigrationTable && $table->name == "migration") {
+                continue;
+            }
+
             foreach ($prefixes AS $prefix) {
                 if (substr($table->name, 0, strlen($prefix)) == $prefix) {
                     $found = true;
