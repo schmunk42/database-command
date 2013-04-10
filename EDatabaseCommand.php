@@ -24,9 +24,9 @@ class EDatabaseCommand extends CConsoleCommand
     /**
      * @var string the directory that stores the migrations. This must be specified
      * in terms of a path alias, and the corresponding directory must exist.
-     * Defaults to 'application.migrations' (meaning 'protected/migrations').
+     * Defaults to 'application.runtime' (meaning 'protected/runtime').
      */
-    public $migrationPath='application.migrations';
+    public $migrationPath='application.runtime';
 
     /**
      * @var string database connection component
