@@ -2,6 +2,7 @@
     "name": "schmunk42/database-command",
     "description": "Yii command to create database migrations from existing schema",
     "license": "BSD-3-Clause",
+    "keywords": ["yii", "database", "command", "dump", "create", "migration"],
     "homepage": "https://github.com/schmunk42/database-command",
     "authors": [
         {
