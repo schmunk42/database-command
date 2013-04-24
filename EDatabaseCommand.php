@@ -100,6 +100,7 @@ EOS;
 
     public function actionDump($args)
     {
+        echo "Connecting to '".Yii::app()->{$this->dbConnection}->connectionString."'\n";
 
         $schema = Yii::app()->{$this->dbConnection}->schema;
         $tables = Yii::app()->{$this->dbConnection}->schema->tables;
@@ -124,7 +125,12 @@ EOS;
         $prefixes = explode(",", $this->prefix);
 
         $codeTruncate = $codeSchema = $codeForeignKeys = $codeInserts = '';
+
+        echo "Querying tables ";
+
         foreach ($tables as $table) {
+
+            echo ".";
 
             $found = false;
 
@@ -169,17 +175,17 @@ EOS;
 
         file_put_contents($filename, $migrationClassCode);
 
-        echo "Your data has been dumped to '$filename'\n";
+        echo "\n\nMigration class successfully created at \n$filename\n\n";
 
         if ($this->_displayFkWarning) {
             echo <<<EOS
-
 WARNING
 Your database include Foreign Keys definitions. Sadly Yii methods don't allow to know the details of the relation, precisely
 ON DELETE and ON UPDATE conditions.
 Please open the generated file, look for lines with "FIX RELATIONS" comment and adjust them according to your database.
 For details about the addForeignKey definition please see here:
     http://www.yiiframework.com/doc/api/1.1/CDbMigration#addForeignKey-detail
+
 
 EOS;
         }
