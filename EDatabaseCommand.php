@@ -25,6 +25,7 @@ class EDatabaseCommand extends CConsoleCommand
      * @var string the directory that stores the migrations. This must be specified
      * in terms of a path alias, and the corresponding directory must exist.
      * Defaults to 'application.runtime' (meaning 'protected/runtime').
+     * Copy the created migration into eg. application.migrations to activate it for your project.
      */
     public $migrationPath='application.runtime';
 
@@ -90,7 +91,8 @@ Available actions:
 
 dump [<name>] [--prefix=<table_prefix,...>] [--dbConnection=<db>]
     [--createSchema=<1|0>] [--insertData=<1|0>] [--foreignKeyChecks=<1|0>]
-    [--truncateTable=<0|1>]
+    [--ignoreMigrationTable=<1|0>]
+    [--truncateTable=<0|1>] [--migrationPath=<application.runtime>]
 
 
 EOS;
