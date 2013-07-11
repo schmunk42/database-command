@@ -65,11 +65,6 @@ class EDatabaseCommand extends CConsoleCommand
     public $ignoreMigrationTable = true;
 
     /**
-     * @var bool whether to ignore the SQLite if statements
-     */
-    public  $ignoreSQLiteChecks = true;
-
-    /**
      * @var bool whether to display the Foreign Keys warning
      */
     protected $_displayFkWarning = false;
@@ -129,7 +124,7 @@ EOS;
         $filename = $this->migrationPath . DIRECTORY_SEPARATOR . $migrationClassName . ".php";
         $prefixes = explode(",", $this->prefix);
 
-        $codeTruncate = $codeSchema = $codeForeignKeys = $codeIndexes = $codeInserts = '';
+        $codeTruncate = $codeSchema = $codeForeignKeys = $codeInserts = '';
 
         echo "Querying tables ";
 
@@ -160,7 +155,6 @@ EOS;
             if ($this->createSchema == true) {
                 $codeSchema .= $this->generateSchema($table, $schema);
                 $codeForeignKeys .= $this->generateForeignKeys($table, $schema);
-                $codeIndexes .= $this->generateIndexes($table, $schema);
             }
 
             if ($this->insertData == true) {
@@ -168,7 +162,7 @@ EOS;
             }
         }
 
-        $code .= $codeTruncate."\n".$codeSchema."\n".$codeForeignKeys."\n".$codeIndexes."\n".$codeInserts;
+        $code .= $codeTruncate."\n".$codeSchema."\n".$codeForeignKeys."\n".$codeForeignKeys."\n".$codeInserts;
 
         if ($this->foreignKeyChecks == false) {
             $code .= $this->indent(2) . "if (Yii::app()->db->schema instanceof CMysqlSchema)\n";
@@ -222,14 +216,11 @@ EOS;
 
     private function generatePrimaryKeys($columns)
     {
-        $keys = array();
         foreach ($columns as $col) {
-            if ($col->isPrimaryKey) {
-                $keys[] = "`$col->name`";
+            if ($col->isPrimaryKey && !$col->autoIncrement) {
+                return $this->indent(3) . '"PRIMARY KEY (' . $col->name . ')"' . "\n";
             }
         }
-
-        return $this->indent(3) . '"PRIMARY KEY (' . implode(',', $keys) . ')"' . "\n";
     }
 
     private function generateForeignKeys($table, $schema)
@@ -238,56 +229,15 @@ EOS;
             return "";
         }
         $code = "\n\n\n" . $this->indent(2) . "// Foreign Keys for table '" . $table->name . "'\n";
-
-        if(!$this->ignoreSQLiteChecks){
-            $code .= $this->indent(2) . "if ((Yii::app()->db->schema instanceof CSqliteSchema) == false):\n";
-        }
-
+        $code .= $this->indent(2) . "if ((Yii::app()->db->schema instanceof CSqliteSchema) == false):\n";
         foreach ($table->foreignKeys as $name => $foreignKey) {
             $code .= $this->indent(3) . "\$this->addForeignKey('fk_{$table->name}_{$foreignKey[0]}_{$name}', '{$table->name}', '{$name}', '{$foreignKey[0]}', '{$foreignKey[1]}', null, null); // FIX RELATIONS \n";
         }
-
-        if(!$this->ignoreSQLiteChecks){
-            $code .= $this->indent(2) . "endif;\n";
-        }
+        $code .= $this->indent(2) . "endif;\n";
         $this->_displayFkWarning = TRUE;
         return $code;
     }
 
-    private function generateIndexes($table, $schema)
-    {
-        $indexes = Yii::app()->db->createCommand(
-            "SHOW INDEX FROM " . $table->name . "
-            WHERE Key_name != 'PRIMARY'"
-        )->queryAll();
-
-        if (count($indexes) == 0) {
-            return "";
-        }
-
-        $code = "\n" . $this->indent(2) . "// Indexes for table '" . $table->name . "'\n";
-        if(!$this->ignoreSQLiteChecks){
-            $code .= $this->indent(2) . "if ((Yii::app()->db->schema instanceof CSqliteSchema) == false):\n";
-        }
-
-        $checker = false;
-
-        foreach ($indexes as $index) {
-            if (!isset($table->foreignKeys[$index['Column_name']])) {
-                $unique = !$index['Non_unique'] ? 'True' : 'False';
-                $code .= $this->indent(3) . "\$this->createIndex('index_{$index['Table']}_{$index['Column_name']}', '{$index['Table']}', '{$index['Column_name']}', {$unique}); \n";
-                $checker = true;
-            }
-
-        }
-
-        if(!$this->ignoreSQLiteChecks){
-            $code .= $this->indent(2) . "endif;\n";
-        }
-
-        //remove everything if there were no results
-        return $checker ? $code : '';
-    }
     private function generateInserts($table, $schema)
     {
         $data = Yii::app()->{$this->dbConnection}->createCommand()
@@ -322,6 +272,9 @@ EOS;
         }
         if ($col->defaultValue != null) {
             $result .= " DEFAULT '{$col->defaultValue}'";
+        }
+        if ($col->isPrimaryKey) {
+            $result .= " PRIMARY KEY";
         }
         if ($col->autoIncrement) {
             $result .= " AUTO_INCREMENT";
