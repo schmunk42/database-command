@@ -3,10 +3,10 @@
 /**
  * Class file.
  *
- * @author Tobias Munk <schmunk@usrbin.de>
- * @link http://www.phundament.com/
+ * @author    Tobias Munk <schmunk@usrbin.de>
+ * @link      http://www.phundament.com/
  * @copyright Copyright &copy; 2005-2011 diemeisterei GmbH
- * @license http://www.phundament.com/license/
+ * @license   http://www.phundament.com/license/
  */
 
 /**
@@ -27,7 +27,7 @@ class EDatabaseCommand extends CConsoleCommand
      * Defaults to 'application.runtime' (meaning 'protected/runtime').
      * Copy the created migration into eg. application.migrations to activate it for your project.
      */
-    public $migrationPath='application.runtime';
+    public $migrationPath = 'application.migrations';
 
     /**
      * @var string database connection component
@@ -35,22 +35,22 @@ class EDatabaseCommand extends CConsoleCommand
     public $dbConnection = "db";
 
     /**
-     * @var string wheter to dump a create table statement
+     * @var string whether to dump a create table statement
      */
     public $createSchema = true;
 
     /**
-     * @var string wheter to dump a insert data statements
+     * @var string whether to dump a insert data statements
      */
     public $insertData = true;
 
     /**
-     * @var string wheter to add truncate table data statements
+     * @var string whether to add truncate table data statements
      */
     public $truncateTable = false;
 
     /**
-     * @var string wheter to disable foreign key checks
+     * @var string whether to disable foreign key checks
      */
     public $foreignKeyChecks = true;
 
@@ -60,7 +60,7 @@ class EDatabaseCommand extends CConsoleCommand
     public $prefix = "";
 
     /**
-     * @var string wheter to ignore the migration table
+     * @var string whether to ignore the migration table
      */
     public $ignoreMigrationTable = true;
 
@@ -74,17 +74,16 @@ class EDatabaseCommand extends CConsoleCommand
      */
     protected $_displayFkWarning = false;
 
-    public function beforeAction($action,$params)
+    public function beforeAction($action, $params)
     {
-        $path=Yii::getPathOfAlias($this->migrationPath);
-        if($path===false || !is_dir($path))
-        {
-            echo 'Error: The migration directory does not exist: '.$this->migrationPath."\n";
+        $path = Yii::getPathOfAlias($this->migrationPath);
+        if ($path === false || !is_dir($path)) {
+            echo 'Error: The migration directory does not exist: ' . $this->migrationPath . "\n";
             exit(1);
         }
-        $this->migrationPath=$path;
+        $this->migrationPath = $path;
 
-        return parent::beforeAction($action,$params);
+        return parent::beforeAction($action, $params);
     }
 
     public function getHelp()
@@ -99,13 +98,16 @@ dump [<name>] [--prefix=<table_prefix,...>] [--dbConnection=<db>]
     [--ignoreMigrationTable=<1|0>]
     [--truncateTable=<0|1>] [--migrationPath=<application.runtime>]
 
+    //////To get only schema
+    php yiic database dump all_schema --insertData=0
+
 
 EOS;
     }
 
     public function actionDump($args)
     {
-        echo "Connecting to '".Yii::app()->{$this->dbConnection}->connectionString."'\n";
+        echo "Connecting to '" . Yii::app()->{$this->dbConnection}->connectionString . "'\n";
 
         $schema = Yii::app()->{$this->dbConnection}->schema;
         $tables = Yii::app()->{$this->dbConnection}->schema->tables;
@@ -129,7 +131,7 @@ EOS;
         $filename = $this->migrationPath . DIRECTORY_SEPARATOR . $migrationClassName . ".php";
         $prefixes = explode(",", $this->prefix);
 
-        $codeTruncate = $codeSchema = $codeForeignKeys = $codeIndexes = $codeInserts = '';
+        $codeTruncate = $codeSchema = $codeForeignKeysAndIndexes = $codeInserts = '';
 
         echo "Querying tables ";
 
@@ -159,8 +161,8 @@ EOS;
 
             if ($this->createSchema == true) {
                 $codeSchema .= $this->generateSchema($table, $schema);
-                $codeForeignKeys .= $this->generateForeignKeys($table, $schema);
-                $codeIndexes .= $this->generateIndexes($table, $schema);
+                $codeForeignKeysAndIndexes .=
+                    $this->generateForeignKeys($table, $schema) . $this->generateIndexes($table, $schema);
             }
 
             if ($this->insertData == true) {
@@ -168,7 +170,7 @@ EOS;
             }
         }
 
-        $code .= $codeTruncate."\n".$codeSchema."\n".$codeForeignKeys."\n".$codeIndexes."\n".$codeInserts;
+        $code .= $codeTruncate . "\n" . $codeSchema . "\n" . $codeForeignKeysAndIndexes . "\n" . $codeInserts;
 
         if ($this->foreignKeyChecks == false) {
             $code .= $this->indent(2) . "if (Yii::app()->db->schema instanceof CMysqlSchema)\n";
@@ -176,8 +178,13 @@ EOS;
         }
 
         $migrationClassCode = $this->renderFile(
-            dirname(__FILE__) . '/views/migration.php', array('migrationClassName' => $migrationClassName,
-                                                              'functionUp' => $code), true);
+            dirname(__FILE__) . '/views/migration.php',
+            array(
+                'migrationClassName' => $migrationClassName,
+                'functionUp'         => $code
+            ),
+            true
+        );
 
         file_put_contents($filename, $migrationClassCode);
 
@@ -199,13 +206,13 @@ EOS;
 
     private function indent($level = 0)
     {
-        return str_repeat("    ", $level);
+        return str_repeat("  ", $level);
     }
 
     private function generateSchema($table, $schema)
     {
         $options = "ENGINE=InnoDB DEFAULT CHARSET=utf8";
-        $code = "\n\n\n" . $this->indent(2) . "// Schema for table '" . $table->name . "'\n";
+        $code = "\n\n" . $this->indent(2) . "// Schema for table '" . $table->name . "'\n";
         $code .= $this->indent(2) . '$this->createTable("' . $table->name . '", ';
         $code .= "\n";
         $code .= $this->indent(3) . 'array(' . "\n";
@@ -228,7 +235,6 @@ EOS;
                 $keys[] = "`$col->name`";
             }
         }
-
         return $this->indent(3) . '"PRIMARY KEY (' . implode(',', $keys) . ')"' . "\n";
     }
 
@@ -237,20 +243,21 @@ EOS;
         if (count($table->foreignKeys) == 0) {
             return "";
         }
-        $code = "\n\n\n" . $this->indent(2) . "// Foreign Keys for table '" . $table->name . "'\n";
+
+        $code = "\n" . $this->indent(2) . "// FOREIGN KEYS for table '" . $table->name . "'\n";
 
         if(!$this->ignoreSQLiteChecks){
             $code .= $this->indent(2) . "if ((Yii::app()->db->schema instanceof CSqliteSchema) == false):\n";
         }
 
         foreach ($table->foreignKeys as $name => $foreignKey) {
-            $code .= $this->indent(3) . "\$this->addForeignKey('fk_{$table->name}_{$foreignKey[0]}_{$name}', '{$table->name}', '{$name}', '{$foreignKey[0]}', '{$foreignKey[1]}', null, null); // FIX RELATIONS \n";
+            $code .= $this->indent(3) . "\$this->addForeignKey('fk_{$table->name}_{$foreignKey[0]}_{$name}', '{$table->name}', '{$name}', '{$foreignKey[0]}', '{$foreignKey[1]}', 'CASCADE', 'CASCADE'); // FIX RELATIONS \n";
         }
 
         if(!$this->ignoreSQLiteChecks){
             $code .= $this->indent(2) . "endif;\n";
         }
-        $this->_displayFkWarning = TRUE;
+        $this->_displayFkWarning = true;
         return $code;
     }
 
@@ -258,14 +265,14 @@ EOS;
     {
         $indexes = Yii::app()->db->createCommand(
             "SHOW INDEX FROM " . $table->name . "
-            WHERE Key_name != 'PRIMARY'"
+      WHERE Key_name != 'PRIMARY'"
         )->queryAll();
 
         if (count($indexes) == 0) {
             return "";
         }
 
-        $code = "\n" . $this->indent(2) . "// Indexes for table '" . $table->name . "'\n";
+        $code = "\n" . $this->indent(2) . "// INDEXES for table '" . $table->name . "'\n";
         if(!$this->ignoreSQLiteChecks){
             $code .= $this->indent(2) . "if ((Yii::app()->db->schema instanceof CSqliteSchema) == false):\n";
         }
@@ -280,7 +287,6 @@ EOS;
             }
 
         }
-
         if(!$this->ignoreSQLiteChecks){
             $code .= $this->indent(2) . "endif;\n";
         }
@@ -288,6 +294,7 @@ EOS;
         //remove everything if there were no results
         return $checker ? $code : '';
     }
+
     private function generateInserts($table, $schema)
     {
         $data = Yii::app()->{$this->dbConnection}->createCommand()
@@ -299,7 +306,7 @@ EOS;
             $code .= $this->indent(2) . '$this->insert("' . $table->name . '", array(' . "\n";
             foreach ($row AS $column => $value) {
                 $code .= $this->indent(3) . '"' . $column . '"=>' . (($value === null) ? 'null' :
-                    '"' . addcslashes($value, '"\\$') . '"') . ',' . "\n";
+                        '"' . addcslashes($value, '"\\$') . '"') . ',' . "\n";
             }
             $code .= $this->indent(2) . ') );' . "\n\n";
         }
@@ -315,13 +322,18 @@ EOS;
 
     private function resolveColumnType($col)
     {
+
         $result = $col->dbType;
 
         if (!$col->allowNull) {
             $result .= ' NOT NULL';
         }
-        if ($col->defaultValue != null) {
+        if ($col->defaultValue !== null) {
+
             $result .= " DEFAULT '{$col->defaultValue}'";
+        }
+        if ($col->isPrimaryKey) {
+//            $result .= " PRIMARY KEY";
         }
         if ($col->autoIncrement) {
             $result .= " AUTO_INCREMENT";
