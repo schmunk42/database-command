@@ -67,7 +67,7 @@ class EDatabaseCommand extends CConsoleCommand
     /**
      * @var bool whether to ignore the SQLite if statements
      */
-    public  $ignoreSQLiteChecks = true;
+    public  $ignoreSQLiteChecks = false;
 
     /**
      * @var bool whether to display the Foreign Keys warning
@@ -275,7 +275,7 @@ EOS;
         foreach ($indexes as $index) {
             if (!isset($table->foreignKeys[$index['Column_name']])) {
                 $unique = !$index['Non_unique'] ? 'True' : 'False';
-                $code .= $this->indent(3) . "\$this->createIndex('index_{$index['Table']}_{$index['Column_name']}', '{$index['Table']}', '{$index['Column_name']}', {$unique}); \n";
+                $code .= $this->indent(3) . "\$this->createIndex('index_{$index['Column_name']}', '{$index['Table']}', '{$index['Column_name']}', {$unique}); \n";
                 $checker = true;
             }
 
