@@ -271,21 +271,35 @@ EOS;
         }
 
         $checker = false;
+        $addIndexes = array();
 
         foreach ($indexes as $index) {
             if (!isset($table->foreignKeys[$index['Column_name']])) {
-                $unique = !$index['Non_unique'] ? 'True' : 'False';
-                $code .= $this->indent(3) . "\$this->createIndex('index_{$index['Column_name']}', '{$index['Table']}', '{$index['Column_name']}', {$unique}); \n";
-                $checker = true;
+                $key = $index['Key_name'];
+                if (!isset($addIndexes[$key])) {
+                    $addIndexes[$key] = array(
+                        'name' => 'index_'.$index['Column_name'],
+                        'columns' => array(),
+                        'unique'=> !$index['Non_unique'] ? 'True' : 'False',
+                    );
+                    $checker = true;
+                }
+                $addIndexes[$key]['columns'][] = $index['Column_name'];
             }
-
         }
 
-        if(!$this->ignoreSQLiteChecks){
-            $code .= $this->indent(2) . "endif;\n";
+        if (!$checker) {
+            return false;
         }
 
-        //remove everything if there were no results
+        foreach ($addIndexes as $index) {
+            $code .= $this->indent(3) . "\$this->createIndex('{$index['name']}', '{$table->name}', '".implode(',', $index['columns'])."', {$index['unique']}); \n";
+            if(!$this->ignoreSQLiteChecks){
+                $code .= $this->indent(2) . "endif;\n";
+            }
+        }
+
+        //remove everything if there are no results
         return $checker ? $code : '';
     }
     private function generateInserts($table, $schema)
