@@ -65,6 +65,11 @@ class EDatabaseCommand extends CConsoleCommand
     public $ignoreMigrationTable = true;
 
     /**
+     * @var bool whether to ignore the SQLite if statements
+     */
+    public  $ignoreSQLiteChecks = false;
+
+    /**
      * @var bool whether to display the Foreign Keys warning
      */
     protected $_displayFkWarning = false;
@@ -129,7 +134,7 @@ EOS;
         $filename = $this->migrationPath . DIRECTORY_SEPARATOR . $migrationClassName . ".php";
         $prefixes = explode(",", $this->prefix);
 
-        $codeTruncate = $codeSchema = $codeForeignKeys = $codeInserts = '';
+        $codeTruncate = $codeSchema = $codeForeignKeys = $codeIndexes = $codeInserts = '';
 
         echo "Querying tables ";
 
@@ -160,6 +165,7 @@ EOS;
             if ($this->createSchema == true) {
                 $codeSchema .= $this->generateSchema($table, $schema);
                 $codeForeignKeys .= $this->generateForeignKeys($table, $schema);
+                $codeIndexes .= $this->generateIndexes($table, $schema);
             }
 
             if ($this->insertData == true) {
@@ -167,7 +173,7 @@ EOS;
             }
         }
 
-        $code .= $codeTruncate."\n".$codeSchema."\n".$codeForeignKeys."\n".$codeForeignKeys."\n".$codeInserts;
+        $code .= $codeTruncate."\n".$codeSchema."\n".$codeForeignKeys."\n".$codeIndexes."\n".$codeInserts;
 
         if ($this->foreignKeyChecks == false) {
             $code .= $this->indent(2) . "if (Yii::app()->db->schema instanceof CMysqlSchema)\n";
@@ -221,11 +227,14 @@ EOS;
 
     private function generatePrimaryKeys($columns)
     {
+        $keys = array();
         foreach ($columns as $col) {
-            if ($col->isPrimaryKey && !$col->autoIncrement) {
-                return $this->indent(3) . '"PRIMARY KEY (' . $col->name . ')"' . "\n";
+            if ($col->isPrimaryKey) {
+                $keys[] = "`$col->name`";
             }
         }
+
+        return $this->indent(3) . '"PRIMARY KEY (' . implode(',', $keys) . ')"' . "\n";
     }
 
     private function generateForeignKeys($table, $schema)
@@ -234,15 +243,70 @@ EOS;
             return "";
         }
         $code = "\n\n\n" . $this->indent(2) . "// Foreign Keys for table '" . $table->name . "'\n";
-        $code .= $this->indent(2) . "if ((Yii::app()->db->schema instanceof CSqliteSchema) == false):\n";
+
+        if(!$this->ignoreSQLiteChecks){
+            $code .= $this->indent(2) . "if ((Yii::app()->db->schema instanceof CSqliteSchema) == false):\n";
+        }
+
         foreach ($table->foreignKeys as $name => $foreignKey) {
             $code .= $this->indent(3) . "\$this->addForeignKey('fk_{$table->name}_{$foreignKey[0]}_{$name}', '{$table->name}', '{$name}', '{$foreignKey[0]}', '{$foreignKey[1]}', null, null); // FIX RELATIONS \n";
         }
-        $code .= $this->indent(2) . "endif;\n";
+
+        if(!$this->ignoreSQLiteChecks){
+            $code .= $this->indent(2) . "endif;\n";
+        }
         $this->_displayFkWarning = TRUE;
         return $code;
     }
 
+    private function generateIndexes($table, $schema)
+    {
+        $indexes = Yii::app()->db->createCommand(
+            "SHOW INDEX FROM " . $table->name . "
+            WHERE Key_name != 'PRIMARY'"
+        )->queryAll();
+
+        if (count($indexes) == 0) {
+            return "";
+        }
+
+        $code = "\n" . $this->indent(2) . "// Indexes for table '" . $table->name . "'\n";
+        if(!$this->ignoreSQLiteChecks){
+            $code .= $this->indent(2) . "if ((Yii::app()->db->schema instanceof CSqliteSchema) == false):\n";
+        }
+
+        $checker = false;
+        $addIndexes = array();
+
+        foreach ($indexes as $index) {
+            if (!isset($table->foreignKeys[$index['Column_name']])) {
+                $key = $index['Key_name'];
+                if (!isset($addIndexes[$key])) {
+                    $addIndexes[$key] = array(
+                        'name' => 'index_'.$index['Column_name'],
+                        'columns' => array(),
+                        'unique'=> !$index['Non_unique'] ? 'True' : 'False',
+                    );
+                    $checker = true;
+                }
+                $addIndexes[$key]['columns'][] = $index['Column_name'];
+            }
+        }
+
+        if (!$checker) {
+            return false;
+        }
+
+        foreach ($addIndexes as $index) {
+            $code .= $this->indent(3) . "\$this->createIndex('{$index['name']}', '{$table->name}', '".implode(',', $index['columns'])."', {$index['unique']}); \n";
+            if(!$this->ignoreSQLiteChecks){
+                $code .= $this->indent(2) . "endif;\n";
+            }
+        }
+
+        //remove everything if there are no results
+        return $checker ? $code : '';
+    }
     private function generateInserts($table, $schema)
     {
         $data = Yii::app()->{$this->dbConnection}->createCommand()
@@ -280,9 +344,6 @@ EOS;
         }
         if ($col->defaultValue != null) {
             $result .= " DEFAULT '{$col->defaultValue}'";
-        }
-        if ($col->isPrimaryKey) {
-            $result .= " PRIMARY KEY";
         }
         if ($col->autoIncrement) {
             $result .= " AUTO_INCREMENT";
