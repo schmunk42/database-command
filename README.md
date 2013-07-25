@@ -43,6 +43,7 @@ name                | dump    | migration class name
 --dbConnection      | db      | application component to use
 --migrationPath     | application.runtime     | default dump folder
 --ignoreMigrationTable | 1    | wheter to ignore to migration table
+--insertAutoIncrementValues | 1    | wheter to include values from auto-increment column
 
 
 #### Example
