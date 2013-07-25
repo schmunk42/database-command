@@ -68,6 +68,11 @@ class EDatabaseCommand extends CConsoleCommand
      * @var bool whether to display the Foreign Keys warning
      */
     protected $_displayFkWarning = false;
+    
+    /**
+     * @var string wheter to ignore autoincrement column values
+     */
+    public $insertAutoIncrementValues = true;
 
     public function beforeAction($action,$params)
     {
@@ -91,8 +96,8 @@ Available actions:
 
 dump [<name>] [--prefix=<table_prefix,...>] [--dbConnection=<db>]
     [--createSchema=<1|0>] [--insertData=<1|0>] [--foreignKeyChecks=<1|0>]
-    [--ignoreMigrationTable=<1|0>]
-    [--truncateTable=<0|1>] [--migrationPath=<application.runtime>]
+    [--ignoreMigrationTable=<1|0>] [--truncateTable=<0|1>]
+    [--insertAutoIncrementValues=<1|0>] [--migrationPath=<application.runtime>]
 
 
 EOS;
@@ -248,6 +253,9 @@ EOS;
         foreach ($data AS $row) {
             $code .= $this->indent(2) . '$this->insert("' . $table->name . '", array(' . "\n";
             foreach ($row AS $column => $value) {
+                if($this->insertAutoIncrementValues == false && $table->columns[$column]->autoIncrement === true) {
+                  $value = null;
+                }
                 $code .= $this->indent(3) . '"' . $column . '"=>' . (($value === null) ? 'null' :
                     '"' . addcslashes($value, '"\\$') . '"') . ',' . "\n";
             }
