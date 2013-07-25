@@ -26,8 +26,9 @@ Run the command...
 ... to show the help page
 
     dump [<name>] [--prefix=<table_prefix,...>] [--dbConnection=<db>]
-        [--createSchema=<1|0>] [--insertData=<1|0>] [--foreignKeyChecks=<1|0>] 
-        [--truncateTable=<0|1>] [--migrationPath=<alias>] [--ignoreMigrationTable=<1|0>]
+            [--createSchema=<1|0>] [--insertData=<1|0>] [--foreignKeyChecks=<1|0>]
+            [--ignoreMigrationTable=<1|0>] [--truncateTable=<0|1>]
+            [--insertAutoIncrementValues=<1|0>] [--migrationPath=<application.runtime>]
 
 
 
