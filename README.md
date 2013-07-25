@@ -48,7 +48,7 @@ name                | dump    | migration class name
 
 #### Example
 
-To create a migration from an existing application scheme, define an alternative database component in your 
+To create a migration from an existing application database schema, define an alternative database component in your 
 application, e.g. `db-production`. 
 
 This example shows data dumping, removes all data (truncate tables) and omits foreign key checks:
