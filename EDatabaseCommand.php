@@ -111,7 +111,7 @@ EOS;
         $tables = Yii::app()->{$this->dbConnection}->schema->tables;
 
         $code = '';
-        $code .= $this->indent(2) . "if (Yii::app()->db->schema instanceof CMysqlSchema) {\n";
+        $code .= $this->indent(2) . "if (\$this->dbConnection->schema instanceof CMysqlSchema) {\n";
         if ($this->foreignKeyChecks == false) {
             $code .= $this->indent(2) . "   \$this->execute('SET FOREIGN_KEY_CHECKS = 0;');\n";
         }
@@ -170,7 +170,7 @@ EOS;
         $code .= $codeTruncate."\n".$codeSchema."\n".$codeForeignKeys."\n".$codeForeignKeys."\n".$codeInserts;
 
         if ($this->foreignKeyChecks == false) {
-            $code .= $this->indent(2) . "if (Yii::app()->db->schema instanceof CMysqlSchema)\n";
+            $code .= $this->indent(2) . "if (\$this->dbConnection->schema instanceof CMysqlSchema)\n";
             $code .= $this->indent(2) . "   \$this->execute('SET FOREIGN_KEY_CHECKS = 1;');\n";
         }
 
@@ -234,7 +234,7 @@ EOS;
             return "";
         }
         $code = "\n\n\n" . $this->indent(2) . "// Foreign Keys for table '" . $table->name . "'\n";
-        $code .= $this->indent(2) . "if ((Yii::app()->db->schema instanceof CSqliteSchema) == false):\n";
+        $code .= $this->indent(2) . "if ((\$this->dbConnection->schema instanceof CSqliteSchema) == false):\n";
         foreach ($table->foreignKeys as $name => $foreignKey) {
             $code .= $this->indent(3) . "\$this->addForeignKey('fk_{$table->name}_{$foreignKey[0]}_{$name}', '{$table->name}', '{$name}', '{$foreignKey[0]}', '{$foreignKey[1]}', null, null); // FIX RELATIONS \n";
         }
