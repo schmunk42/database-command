@@ -36,14 +36,14 @@ Param               | Default | Info
 --------------------|---------|-----------------------------------
 name                | dump    | migration class name
 --prefix            |         | dump only tables with given prefix<br/>(specify multiple prefixes separated by commas)
---createSchema      | 1       | wheter to create tables
---insertData        | 1       | wheter to create insert statements
+--createSchema      | 1       | whether to create tables
+--insertData        | 1       | whether to create insert statements
 --foreignKeyChecks  | 1       | set to `0` to disable foreign key checks
---truncateTable     | 0       | wheter to remove all records from the table first
+--truncateTable     | 0       | whether to remove all records from the table first
 --dbConnection      | db      | application component to use
 --migrationPath     | application.runtime     | default dump folder
---ignoreMigrationTable | 1    | wheter to ignore to migration table
---insertAutoIncrementValues | 1    | wheter to include values from auto-increment column
+--ignoreMigrationTable | 1    | whether to ignore to migration table
+--insertAutoIncrementValues | 1    | whether to include values from auto-increment column
 
 
 #### Example
