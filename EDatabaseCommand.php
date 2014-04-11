@@ -60,6 +60,11 @@ class EDatabaseCommand extends CConsoleCommand
     public $prefix = "";
 
     /**
+     * @var string comma-separated list of tables to be excluded
+     */
+    public $excludeTables = "";
+
+    /**
      * @var string wheter to ignore the migration table
      */
     public $ignoreMigrationTable = true;
@@ -131,15 +136,16 @@ EOS;
 
         $codeTruncate = $codeSchema = $codeForeignKeys = $codeInserts = '';
 
-        echo "Querying tables ";
+        echo "Querying tables \n";
 
         foreach ($tables as $table) {
-
-            echo ".";
 
             $found = false;
 
             if ($this->ignoreMigrationTable && $table->name == "migration") {
+                continue;
+            }
+            if (in_array($table->name, explode(",",$this->excludeTables))) {
                 continue;
             }
 
@@ -152,6 +158,8 @@ EOS;
             if (!$found) {
                 continue;
             }
+
+            echo " -> ".$table->name."\n";
 
             if ($this->truncateTable == true) {
                 $codeTruncate .= $this->generateTruncate($table, $schema);
