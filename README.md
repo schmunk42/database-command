@@ -4,6 +4,11 @@ database-command
 Yii command to create database migrations from existing schema. 
 Migration classes are created in application `runtime` folder.
 
+Requirements
+------------
+
+ * Yii 1.1.*
+
 Features
 --------
 
@@ -16,6 +21,22 @@ Download
 
 [Get it from github](https://github.com/schmunk42/database-command/tags) and place it into your application.
 
+Or install it via `composer require schmunk42/database-command`.
+
+
+Configuration
+-------------
+
+`config/console.php`
+
+    'commandMap' => array(
+        'database' => array(
+            'class' => 'vendor.schmunk42.database-command.EDatabaseCommand',
+        ),
+    )
+
+> Note: You may have to replace `vendor.schmunk42.database-command.EDatabaseCommand` with the acutal installation path.    
+    
 Usage
 -----
 
@@ -74,22 +95,6 @@ the schema create statements:
     ./yiic database dump p3media_no_schema_production \
     --prefix=p3_media --createSchema=0 --dbConnection=dbProduction
 
-
-Requirements
-------------
-
- * Yii 1.1.*
-
-Configuration
--------------
-
-`config/console.php`
-
-    'commandMap' => array(
-        'database' => array(
-            'class' => 'vendor.schmunk42.database-command.EDatabaseCommand',
-        ),
-    )
 
 Resources
 ---------
