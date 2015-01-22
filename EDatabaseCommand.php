@@ -19,6 +19,10 @@
  * @author Tobias Munk <schmunk@usrbin.de>
  * @author Oleksii Strutsynskyi <cajoy1981@gmail.com>
  */
+
+// TODO
+    // fix col onupdate / timestamp
+
 class EDatabaseCommand extends CConsoleCommand
 {
     /**
@@ -115,6 +119,11 @@ EOS;
         $schema = Yii::app()->{$this->dbConnection}->schema;
         $tables = Yii::app()->{$this->dbConnection}->schema->tables;
 
+        $sql=" SELECT * FROM information_schema.referential_constraints WHERE constraint_schema = :databaseName";
+        //get DataBase Name
+        $curdb  = explode('=', Yii::app()->db->connectionString);
+        $totalForeignKey=Yii::app()->{$this->dbConnection}->createCommand($sql)->bindValue(':databaseName',$curdb[2])->queryAll();
+
         $code = '';
         $code .= $this->indent(2) . "if (\$this->dbConnection->schema instanceof CMysqlSchema) {\n";
         if ($this->foreignKeyChecks == false) {
@@ -134,7 +143,7 @@ EOS;
         $filename = $this->migrationPath . DIRECTORY_SEPARATOR . $migrationClassName . ".php";
         $prefixes = explode(",", $this->prefix);
 
-        $codeTruncate = $codeSchema = $codeForeignKeys = $codeInserts = '';
+        $codeTruncate = $codeSchema = $codeForeignKeys = $codeIndexs = $codeInserts = '';
 
         echo "Querying tables \n";
 
@@ -167,7 +176,8 @@ EOS;
 
             if ($this->createSchema == true) {
                 $codeSchema .= $this->generateSchema($table, $schema);
-                $codeForeignKeys .= $this->generateForeignKeys($table, $schema);
+                $codeIndexs .= $this->getIndexs($table);
+                $codeForeignKeys .= $this->generateForeignKeys($table, $schema,$totalForeignKey);
             }
 
             if ($this->insertData == true) {
@@ -175,7 +185,11 @@ EOS;
             }
         }
 
-        $code .= $codeTruncate."\n".$codeSchema."\n".$codeForeignKeys."\n".$codeForeignKeys."\n".$codeInserts;
+        $code .= $codeTruncate."\n";
+        $code .= $codeSchema."\n";
+        $code .= $codeIndexs."\n";
+        $code .= $codeForeignKeys."\n";
+        $code .= $codeInserts."\n";
 
         if ($this->foreignKeyChecks == false) {
             $code .= $this->indent(2) . "if (\$this->dbConnection->schema instanceof CMysqlSchema)\n";
@@ -235,16 +249,68 @@ EOS;
             }
         }
     }
+    private function getForeignKeyConstraint($table_name,$refernced_table_name,$arrayForeignKey)
+    {
+        foreach($arrayForeignKey as $index=>$recode)
+        {
+            if($recode['TABLE_NAME']==$table_name && $recode['REFERENCED_TABLE_NAME']==$refernced_table_name)
+            {
+               return $index ;
+            }
+        }
+         return null ;
+    }
 
-    private function generateForeignKeys($table, $schema)
+    private function getIndexs($table)
+    {
+        // TODO check if only CMysqlSchema
+        $sql = "SHOW INDEX FROM {$table->name}";
+        $indexs=Yii::app()->{$this->dbConnection}->createCommand($sql)->queryAll();
+        if (count($indexs) == 0)
+        {
+            return "";
+        }
+        $code = "\n\n" . $this->indent(2) . "// Indexs Keys for table '" . $table->name . "'\n";
+        foreach ($indexs as $index)
+        {
+            // i think primary already set !!
+            if ($index['Key_name'] == 'PRIMARY')
+            {
+                continue;
+            }
+            $indexUnique = 'true';
+            if ($index['Non_unique'] == 1)
+            {
+                $indexUnique = 'false';
+            }
+            $code .= $this->indent(2) . "\$this->createIndex('{$index['Key_name']}','{$index['Table']}','{$index['Column_name']}',{$indexUnique}); \n";
+        }
+        return $code;
+    }
+
+    private function generateForeignKeys($table, $schema,$totalForeignKey)
     {
         if (count($table->foreignKeys) == 0) {
             return "";
         }
-        $code = "\n\n\n" . $this->indent(2) . "// Foreign Keys for table '" . $table->name . "'\n";
+        $code = "\n\n" . $this->indent(2) . "// Foreign Keys for table '" . $table->name . "'\n";
         $code .= $this->indent(2) . "if ((\$this->dbConnection->schema instanceof CSqliteSchema) == false):\n";
+         
         foreach ($table->foreignKeys as $name => $foreignKey) {
-            $code .= $this->indent(3) . "\$this->addForeignKey('fk_{$table->name}_{$foreignKey[0]}_{$name}', '{$table->name}', '{$name}', '{$foreignKey[0]}', '{$foreignKey[1]}', null, null); // FIX RELATIONS \n";
+            $index=$this->getForeignKeyConstraint($table->name,$foreignKey[0],$totalForeignKey);
+            if($index!=null)
+            {
+               $DELETE_RULE= "'".$totalForeignKey[$index]['DELETE_RULE']."'";
+               $UPDATE_RULE= "'".$totalForeignKey[$index]['UPDATE_RULE']."'"; 
+
+            }
+            else
+            {
+                 $DELETE_RULE='Null';
+                 $UPDATE_RULE='Null';
+            }
+            $code .= $this->indent(3) . "\$this->addForeignKey('fk_{$table->name}_{$foreignKey[0]}_{$name}', '{$table->name}', '{$name}', '{$foreignKey[0]}', '{$foreignKey[1]}', {$DELETE_RULE},{$UPDATE_RULE}); \n";
+ 
         }
         $code .= $this->indent(2) . "endif;\n";
         $this->_displayFkWarning = TRUE;
@@ -282,11 +348,11 @@ EOS;
     private function resolveColumnType($col)
     {
         $result = $col->dbType;
-
         if (!$col->allowNull) {
             $result .= ' NOT NULL';
         }
-        if ($col->defaultValue != null) {
+        if ($col->defaultValue !== NULL)
+        {
             $result .= " DEFAULT '{$col->defaultValue}'";
         }
         if ($col->isPrimaryKey) {
@@ -295,7 +361,6 @@ EOS;
         if ($col->autoIncrement) {
             $result .= " AUTO_INCREMENT";
         }
-
         return $result;
     }
 
